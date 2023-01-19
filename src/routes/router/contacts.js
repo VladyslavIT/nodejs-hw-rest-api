@@ -6,11 +6,10 @@ const {
   deleteContact,
   postContact,
   putContact,
-  patchContact
+  patchContact,
 } = require("../api/controller");
-const {validateSchema} = require('../../middlewares/validateSchema');
-const {addSchema} = require('../../middlewares/addContactSchema');
-
+const { validateSchema } = require("../../middlewares/validateSchema");
+const { addSchema } = require("../../middlewares/addContactSchema");
 
 router.get("/", getContacts);
 router.get("/:contactId", getById);
