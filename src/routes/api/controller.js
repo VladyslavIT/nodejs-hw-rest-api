@@ -17,7 +17,6 @@ const getContacts = async (req, res, next) => {
 const getById = async (req, res, next) => {
   try {
     const result = await Contact.findById(req.params.contactId);
-    console.log(req.params.contactId);
     if (!result) {
       res.status(404).json({
         code: 404,
@@ -38,8 +37,7 @@ const getById = async (req, res, next) => {
 
 const postContact = async (req, res, next) => {
   try {
-    const { name, email, phone } = req.body;
-    const result = await Contact.create(name, email, phone);
+    const result = await Contact.create(req.body);
     if (!result) {
       res
         .status(400)
@@ -83,7 +81,7 @@ const deleteContact = async (req, res, next) => {
 const putContact = async (req, res, next) => {
   try {
     const id = req.params.contactId;
-    const result = await Contact.findByIdAndUpdate(id, req.body);
+    const result = await Contact.findByIdAndUpdate(id, req.body, {new: true});
     console.log(id);
     if (!result) {
       res.status(404).json({
@@ -106,6 +104,7 @@ const putContact = async (req, res, next) => {
 const patchContact = async (req, res, next) => {
   try {
     const id = req.params.contactId;
+    console.log(req.body);
     if (!req.body) {
       res.status(400).json({
         code: 400,
