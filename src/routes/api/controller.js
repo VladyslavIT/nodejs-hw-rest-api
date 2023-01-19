@@ -1,14 +1,8 @@
-const {
-  listContacts,
-  getContactById,
-  removeContact,
-  addContact,
-  updateContact,
-} = require("../../models/contacts");
+const {Contact} = require('../../models/schema');
 
 const getContacts = async (req, res, next) => {
   try {
-    const result = await listContacts();
+    const result = await Contact.find({});
     res.status(200).json({
       code: 200,
       data: {
@@ -22,7 +16,8 @@ const getContacts = async (req, res, next) => {
 
 const getById = async (req, res, next) => {
   try {
-    const result = await getContactById(req.params.contactId);
+    const result = await Contact.findById(req.params.contactId);
+    console.log(req.params.contactId);
     if (!result) {
       res.status(404).json({
         code: 404,
@@ -44,7 +39,7 @@ const getById = async (req, res, next) => {
 const postContact = async (req, res, next) => {
   try {
     const { name, email, phone } = req.body;
-    const result = addContact(name, email, phone);
+    const result = await Contact.create(name, email, phone);
     if (!result) {
       res
         .status(400)
@@ -64,7 +59,8 @@ const postContact = async (req, res, next) => {
 
 const deleteContact = async (req, res, next) => {
   try {
-    const result = removeContact(req.params.contactId);
+    const result = await Contact.findByIdAndRemove(req.params.contactId);
+    console.log(req.params.contactId);
     if (!result) {
       res.status(404).json({
         code: 404,
@@ -87,8 +83,30 @@ const deleteContact = async (req, res, next) => {
 const putContact = async (req, res, next) => {
   try {
     const id = req.params.contactId;
+    const result = await Contact.findByIdAndUpdate(id, req.body);
     console.log(id);
-    const result = updateContact(id, req.body);
+    if (!result) {
+      res.status(404).json({
+        code: 404,
+        message: "Not found",
+      });
+      return;
+    }
+    res.status(200).json({
+      code: 200,
+      data: {
+        result,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const patchContact = async (req, res, next) => {
+  try {
+    const id = req.params.contactId;
+    const result = await Contact.findByIdAndUpdate(id, req.body);
     if (!result) {
       res.status(404).json({
         code: 404,
@@ -113,4 +131,5 @@ module.exports = {
   deleteContact,
   postContact,
   putContact,
+  patchContact
 };
