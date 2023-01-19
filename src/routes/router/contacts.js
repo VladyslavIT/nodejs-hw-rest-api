@@ -6,6 +6,7 @@ const {
   deleteContact,
   postContact,
   putContact,
+  patchContact
 } = require("../api/controller");
 const {validateSchema} = require('../../middlewares/validateSchema');
 const {addSchema} = require('../../middlewares/addContactSchema');
@@ -16,5 +17,6 @@ router.get("/:contactId", getById);
 router.post("/", validateSchema(addSchema), postContact);
 router.delete("/:contactId", deleteContact);
 router.put("/:contactId", putContact);
+router.patch("/contactId", patchContact);
 
 module.exports = router;

@@ -1,4 +1,4 @@
-const {Contact} = require('../../models/schema');
+const { Contact } = require("../../models/schema");
 
 const getContacts = async (req, res, next) => {
   try {
@@ -106,7 +106,14 @@ const putContact = async (req, res, next) => {
 const patchContact = async (req, res, next) => {
   try {
     const id = req.params.contactId;
-    const result = await Contact.findByIdAndUpdate(id, req.body);
+    if (!req.body) {
+      res.status(400).json({
+        code: 400,
+        message: "missing field favorite",
+      });
+      return;
+    }
+    const result = await Contact.findByIdAndUpdate(id, req.body, { new: true });
     if (!result) {
       res.status(404).json({
         code: 404,
@@ -131,5 +138,5 @@ module.exports = {
   deleteContact,
   postContact,
   putContact,
-  patchContact
+  patchContact,
 };
