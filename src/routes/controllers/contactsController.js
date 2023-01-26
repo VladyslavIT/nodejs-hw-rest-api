@@ -81,7 +81,7 @@ const deleteContact = async (req, res, next) => {
 const putContact = async (req, res, next) => {
   try {
     const id = req.params.contactId;
-    const result = await Contact.findByIdAndUpdate(id, req.body, {new: true});
+    const result = await Contact.findByIdAndUpdate(id, req.body, { new: true });
     console.log(id);
     if (!result) {
       res.status(404).json({
@@ -104,7 +104,6 @@ const putContact = async (req, res, next) => {
 const patchContact = async (req, res, next) => {
   try {
     const id = req.params.contactId;
-    console.log(req.body);
     if (!req.body) {
       res.status(400).json({
         code: 400,
