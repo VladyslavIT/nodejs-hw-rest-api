@@ -1,6 +1,8 @@
 const { User } = require("../../models/users");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const path = require("path");
+const fs = require("fs/promises");
 
 const { JWT_SECRET } = process.env;
 
@@ -87,9 +89,31 @@ const logout = async (req, res, next) => {
   }
 };
 
+const uploadFile = async (req, res, next) => {
+  try {
+    console.log("file", req.file);
+    const {filename} = req.file;
+
+    const tempPath = path.resolve(__dirname, "temp", filename);
+    const publicPath = path.resolve(__dirname, "public", filename);
+    await fs.rename(tempPath, publicPath);
+
+    res.json({
+      ok: true
+    })
+  } catch (error) {
+    console.error('error change directory');
+    res.status(500).json({
+      message: "Error server"
+    })
+    next();
+  }
+};
+
 module.exports = {
   register,
   login,
   getUser,
   logout,
+  uploadFile
 };
