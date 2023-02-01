@@ -20,7 +20,8 @@ const userSchema = mongoose.Schema({
     default: null,
   },
   avatarURL: {
-    type: String
+    type: String,
+    default: "",
   }
 });
 

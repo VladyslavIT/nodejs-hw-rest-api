@@ -7,7 +7,7 @@ const {
   login,
   getUser,
   logout,
-  uploadFile
+  uploadAvatar,
 } = require("../controllers/authController");
 const { validateSchema } = require("../../middlewares/validateSchema");
 const {
@@ -15,11 +15,10 @@ const {
   loginSchema,
 } = require("../../middlewares/authValidate");
 
-
 authRouter.post("/signup", validateSchema(registerSchema), register);
 authRouter.post("/login", validateSchema(loginSchema), login);
 authRouter.get("/current", auth, getUser);
 authRouter.get("/logout", auth, logout);
-authRouter.post("/avatars", upload.single("avatar"), uploadFile);
+authRouter.patch("/avatars", auth, upload.single("avatar"), uploadAvatar);
 
 module.exports = authRouter;
