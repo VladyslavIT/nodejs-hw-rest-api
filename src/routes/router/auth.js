@@ -8,6 +8,8 @@ const {
   getUser,
   logout,
   uploadAvatar,
+  verifyEmail,
+  secondVerifyEmail
 } = require("../controllers/authController");
 const { validateSchema } = require("../../middlewares/validateSchema");
 const {
@@ -15,10 +17,13 @@ const {
   loginSchema,
 } = require("../../middlewares/authValidate");
 
+
 authRouter.post("/signup", validateSchema(registerSchema), register);
 authRouter.post("/login", validateSchema(loginSchema), login);
 authRouter.get("/current", auth, getUser);
 authRouter.get("/logout", auth, logout);
 authRouter.patch("/avatars", auth, upload.single("avatar"), uploadAvatar);
+authRouter.get("/verify/:token", verifyEmail);
+authRouter.post("/verify", secondVerifyEmail);
 
 module.exports = authRouter;
