@@ -164,7 +164,7 @@ const verifyEmail = async (req, res, next) => {
 
     if (!user) {
       res.status(404).json({
-        message: 'User not found'
+        message: "User not found",
       });
     }
 
@@ -174,18 +174,40 @@ const verifyEmail = async (req, res, next) => {
     });
 
     res.status(200).json({
-      message: 'Verification successful',
+      message: "Verification successful",
     });
-
   } catch (error) {
     console.error(error);
     next();
   }
 };
 
-const secondVerifyEmail = async(req, res, next) => {
+const secondVerifyEmail = async (req, res, next) => {
   try {
-    console.log('hi');
+    const { email } = req.body;
+
+    if (!email) {
+      res.status(400).json({
+        message: "missing required field email",
+      });
+      return;
+    }
+
+    const user = User.findOne({ email });
+
+    if (user.verify) {
+      res.status(400).json({
+        message: "Verification has already been passed",
+      });
+      return;
+    }
+
+    await sendEmail({
+      to: email,
+      subject: "Please verify you account",
+      html: `<h1>Hello, ${email} </h1>
+      <a href = "http://localhost:3000/api/users/verify/${user.verificationToken}" target="_blank">Verify email</a>`,
+    });
   } catch (error) {
     console.error(error);
     next();
@@ -199,5 +221,5 @@ module.exports = {
   logout,
   uploadAvatar,
   verifyEmail,
-  secondVerifyEmail
+  secondVerifyEmail,
 };
