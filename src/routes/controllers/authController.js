@@ -1,6 +1,10 @@
 const { User } = require("../../models/users");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const path = require("path");
+const fs = require("fs/promises");
+const Jimp = require("jimp");
+const gravatar = require('gravatar');
 
 const { JWT_SECRET } = process.env;
 
@@ -9,7 +13,9 @@ const register = async (req, res, next) => {
     const { email, password } = req.body;
     const salt = await bcrypt.genSalt();
     const hashedPass = await bcrypt.hash(password, salt);
-    const savedUser = await User.create({ email, password: hashedPass });
+    const avatarURL = gravatar.url(email);
+    const savedUser = await User.create({ email, password: hashedPass, avatarURL });
+    
 
     if (!savedUser) {
       res.status(409).json({
@@ -87,9 +93,53 @@ const logout = async (req, res, next) => {
   }
 };
 
+const uploadAvatar = async (req, res, next) => {
+  const { _id: id } = req.user;
+  const { filename, path: tempPath } = req.file;
+  const avatarName = `${id}.${filename}`;
+  const publicPath = path.join(
+    __dirname,
+    "../../",
+    "public",
+    "avatars",
+    filename
+  );
+
+  try {
+    await fs.rename(tempPath, publicPath);
+
+    Jimp.read(publicPath)
+      .then((avatar) => {
+        return avatar.resize(250, 250);
+      })
+      .catch((error) => {
+        throw error;
+      });
+
+    const avatarURL = path.join("public", "avatars", avatarName);
+
+    const result = await User.findByIdAndUpdate(
+      id,
+      { avatarURL },
+      { new: true }
+    );
+
+    if (!result) {
+      res.status(401).json({ message: "Not authorized" });
+      return;
+    }
+
+    res.status(200).json({ data: { result } });
+  } catch (error) {
+    await fs.unlink(tempPath);
+    throw error;
+  }
+};
+
 module.exports = {
   register,
   login,
   getUser,
   logout,
+  uploadAvatar,
 };
