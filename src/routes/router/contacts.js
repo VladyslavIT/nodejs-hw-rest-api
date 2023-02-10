@@ -7,7 +7,7 @@ const {
   postContact,
   putContact,
   patchContact,
-} = require("../api/controller");
+} = require("../controllers/contactsController");
 const { validateSchema } = require("../../middlewares/validateSchema");
 const { addSchema } = require("../../middlewares/addContactSchema");
 
