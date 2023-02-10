@@ -1,5 +1,18 @@
-const app = require('./app')
+const app = require("./app");
+const mongoose = require("mongoose");
+mongoose.set("strictQuery", false);
 
-app.listen(3000, () => {
-  console.log("Server running. Use our API on port: 3000")
-})
+const { HOST_URI, PORT } = process.env;
+
+async function server() {
+  try {
+    await mongoose.connect(HOST_URI);
+    app.listen(PORT, () => {
+      console.log("Database connection successful");
+    });
+  } catch (error) {
+    console.error(error.message);
+    process.exit(1);
+  }
+}
+server();
