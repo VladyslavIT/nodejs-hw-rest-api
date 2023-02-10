@@ -4,7 +4,9 @@ const jwt = require("jsonwebtoken");
 const path = require("path");
 const fs = require("fs/promises");
 const Jimp = require("jimp");
-const gravatar = require('gravatar');
+const gravatar = require("gravatar");
+const sendEmail = require("../../helpers/sendEmail");
+const { v4 } = require("uuid");
 
 const { JWT_SECRET } = process.env;
 
@@ -14,8 +16,21 @@ const register = async (req, res, next) => {
     const salt = await bcrypt.genSalt();
     const hashedPass = await bcrypt.hash(password, salt);
     const avatarURL = gravatar.url(email);
-    const savedUser = await User.create({ email, password: hashedPass, avatarURL });
-    
+    const verificationToken = v4();
+    const savedUser = await User.create({
+      email,
+      password: hashedPass,
+      avatarURL,
+      verify: false,
+      verificationToken,
+    });
+
+    await sendEmail({
+      to: email,
+      subject: "Please verify you account",
+      html: `<h1>Hello, ${email} </h1>
+      <a href = "http://localhost:3000/api/users/verify/${verificationToken}" target="_blank">Verify email</a>`,
+    });
 
     if (!savedUser) {
       res.status(409).json({
@@ -40,6 +55,12 @@ const login = async (req, res, next) => {
     if (!storedUser) {
       res.status(401).json({
         message: "Email is wrong",
+      });
+    }
+
+    if (!storedUser.verify) {
+      res.status(401).json({
+        message: "Email is not verified, Please, check your email",
       });
     }
 
@@ -110,7 +131,7 @@ const uploadAvatar = async (req, res, next) => {
 
     Jimp.read(publicPath)
       .then((avatar) => {
-        return avatar.resize(250, 250);
+        return avatar.resize(250, 250).write(publicPath);
       })
       .catch((error) => {
         throw error;
@@ -136,10 +157,69 @@ const uploadAvatar = async (req, res, next) => {
   }
 };
 
+const verifyEmail = async (req, res, next) => {
+  try {
+    const { token } = req.params;
+    const user = User.findOne({ verificationToken: token });
+
+    if (!user) {
+      res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    User.findByIdAndUpdate(user._id, {
+      verify: true,
+      verificationToken: null,
+    });
+
+    res.status(200).json({
+      message: "Verification successful",
+    });
+  } catch (error) {
+    console.error(error);
+    next();
+  }
+};
+
+const secondVerifyEmail = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      res.status(400).json({
+        message: "missing required field email",
+      });
+      return;
+    }
+
+    const user = User.findOne({ email });
+
+    if (user.verify) {
+      res.status(400).json({
+        message: "Verification has already been passed",
+      });
+      return;
+    }
+
+    await sendEmail({
+      to: email,
+      subject: "Please verify you account",
+      html: `<h1>Hello, ${email} </h1>
+      <a href = "http://localhost:3000/api/users/verify/${user.verificationToken}" target="_blank">Verify email</a>`,
+    });
+  } catch (error) {
+    console.error(error);
+    next();
+  }
+};
+
 module.exports = {
   register,
   login,
   getUser,
   logout,
   uploadAvatar,
+  verifyEmail,
+  secondVerifyEmail,
 };
